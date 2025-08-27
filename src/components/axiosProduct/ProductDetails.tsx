@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
 import Navbar from "./Navbar";
-import SideBar from "./SideBar";
+import { FaCartArrowDown } from "react-icons/fa6";
+// import SideBar from "./SideBar";
 
 interface Product {
   id: number;
@@ -15,9 +15,15 @@ interface Product {
   stock: number;
   brand: string;
   images: string[];
+  
 }
 
-function ProductDetails() {
+interface ProductDetailsProps {
+  cartCount: number;
+ 
+}
+function ProductDetails({ cartCount }: ProductDetailsProps) {
+  
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const navigate = useNavigate();
@@ -48,9 +54,12 @@ function ProductDetails() {
 
   if (!product) return <p className="text-center mt-10">Loading product...</p>;
 
+
+
+
   return (
-    <div >
-      <SideBar/>
+    <div  className="flex flex-col">
+      <Navbar cartCount={cartCount} /> 
       <div className="max-w-2xl mx-auto mt-10 p-6 border rounded-lg shadow-md">
         <img
           src={product.images?.[0]}
@@ -64,14 +73,18 @@ function ProductDetails() {
         <p className="text-green-600 font-semibold text-lg">${product.price}</p>
         <p className="text-xs text-red-500">-{product.discountPercentage}%</p>
         <p className="text-sm">⭐ {product.rating} | Stock: {product.stock}</p>
-
-        <button
-          onClick={handleDelete}
-          className="mt-5 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-        >
-          Delete Product
-        </button>
+        <div className=" flex gap-5">
+                <button onClick={handleDelete}
+                className="mt-5 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                  Delete Product
+                </button>
+                <button
+                  className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700">
+                  cart <FaCartArrowDown className=""/>
+                </button>
+        </div>
       </div>
+       
     </div>
     
   );

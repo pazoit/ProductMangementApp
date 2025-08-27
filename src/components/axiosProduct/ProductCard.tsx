@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { FaEye } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { BiSolidCartAdd } from "react-icons/bi";
 
 interface ProductCardProps {
   id: number;
@@ -8,37 +10,36 @@ interface ProductCardProps {
   images: string[];
   price: number;
   discountPercentage: number;
+  quantity: number; // 👈 comes from ProductList
   onAddToCart: (id: number, title: string, quantity: number) => void;
+  onIncrement: (id: number) => void;
+  onDecrement: (id: number) => void;
 }
 
-function ProductCard({
+const ProductCard: React.FC<ProductCardProps> = ({
   id,
   title,
   category,
   images,
   price,
   discountPercentage,
+  quantity,
   onAddToCart,
-}: ProductCardProps) {
+  onIncrement,
+  onDecrement,
+}) => {
+  const [imgIndex, setImgIndex] = useState(0);
   const [productTitle, setProductTitle] = useState(title);
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(title);
 
+  // 🔹 Add to Cart
+  const handleAddToCart = () => {
+    onAddToCart(id, productTitle, 1);
+    alert(`${productTitle} added to cart!`);
+  };
 
-
-  // const handleSearch = async (query: string) => {
-  //   setLoading(true);
-  //   try {
-  //     const res = await fetch(`https://dummyjson.com/products/search?q=${query}`);
-  //     const data = await res.json();
-  //     setProducts(data.products || []);
-  //   } catch (error) {
-  //     console.error("Search error:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-  // 🔹 Delete product
+  // 🔹 Delete Product
   const handleDelete = async () => {
     try {
       const res = await fetch(`https://dummyjson.com/products/${id}`, {
@@ -52,7 +53,7 @@ function ProductCard({
     }
   };
 
-  // 🔹 Update product title
+  // 🔹 Update Product Title
   const handleUpdate = async () => {
     try {
       const res = await fetch(`https://dummyjson.com/products/${id}`, {
@@ -64,7 +65,7 @@ function ProductCard({
       const data = await res.json();
       console.log("Updated product:", data);
 
-      setProductTitle(data.title); // update UI
+      setProductTitle(data.title); 
       setIsEditing(false);
       alert(`Product updated to "${data.title}"`);
     } catch (error) {
@@ -72,66 +73,64 @@ function ProductCard({
     }
   };
 
-   // 🔹 Add to cart (API + local state)
-  const handleAddToCart = async () => {
-    try {
-      // 1. Call parent handler (keeps local cart state in sync)
-      onAddToCart(id, productTitle, 1);
-
-      // 2. Call DummyJSON API
-      const res = await fetch("https://dummyjson.com/carts/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: 1, // simulate logged-in user
-          products: [
-            {
-              id: id,
-              quantity: 1,
-            },
-          ],
-        }),
-      });
-
-      const data = await res.json();
-      console.log("Cart updated:", data);
-
-      alert(`"${productTitle}" added to cart!`);
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-    }
-  };
-
   return (
-    <div className="border rounded-lg shadow-md p-4 flex flex-col items-center">
-       <Link to={`/products/${id}`}>
-      <img src={images[0]} alt={title} className="h-32 object-contain mb-2" />
-
-      {/* Title (editable) */}
+    <div className="border p-4 rounded-xl shadow-md hover:shadow-lg transition">
+      {/* Product Image */}
+      <Link to={`/products/${id}`} className="text-blue-500 hover:underline">
+      <img
+        src={images[imgIndex]}
+        alt={productTitle}
+        className="w-full h-40 object-cover rounded-lg"
+      />
+      </Link>
+      {/* Product Info */}
       {isEditing ? (
         <input
           type="text"
           value={newTitle}
           onChange={(e) => setNewTitle(e.target.value)}
-          className="border p-1 rounded w-full mb-2"
+          className="border p-1 rounded w-full mt-2"
         />
       ) : (
-        <h3 className="font-bold text-lg">{productTitle}</h3>
+        <h2 className="text-lg font-bold mt-2">{productTitle}</h2>
       )}
 
-      <p className="text-sm text-gray-500">{category}</p>
+      <p className="text-gray-500 text-sm">{category}</p>
       <p className="text-green-600 font-semibold">${price}</p>
-      <p className="text-xs text-red-500">-{discountPercentage}%</p>
-      </Link>
-      {/* Buttons */}
-      <div className="flex gap-2 mt-3">
+      <p className="text-red-500 text-sm">{discountPercentage}% off</p>
+
+      {/* Product Actions */}
+      <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+        {/* Add to Cart */}
         <button
-         onClick={handleAddToCart}
-          className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700"
+          onClick={handleAddToCart}
+          className="bg-blue-500 text-white p-2 rounded-lg hover:bg-yellow-600"
         >
-          cart
+          Add to Cart   <BiSolidCartAdd className="h-[2rem] w-[2rem] "/>
         </button>
 
+        {/* Quantity Controls */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onDecrement(id)}
+            className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600"
+          >
+            -
+          </button>
+          <span className="font-semibold">{quantity}</span>
+          <button
+            onClick={() => onIncrement(id)}
+            className="bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600"
+          >
+            +
+          </button>
+        </div>
+
+        {/* View Product */}
+
+       
+
+        {/* Delete Product */}
         <button
           onClick={handleDelete}
           className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700"
@@ -139,6 +138,7 @@ function ProductCard({
           Delete
         </button>
 
+        {/* Edit / Save */}
         {isEditing ? (
           <button
             onClick={handleUpdate}
@@ -157,6 +157,6 @@ function ProductCard({
       </div>
     </div>
   );
-}
+};
 
 export default ProductCard;

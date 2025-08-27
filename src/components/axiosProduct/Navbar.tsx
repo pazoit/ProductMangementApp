@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { TiShoppingCart } from "react-icons/ti";
-
 import { FiUser } from "react-icons/fi";
 import SideBar from './SideBar';
+import { useNavigate } from 'react-router-dom';
+import { IoIosLogOut } from "react-icons/io";
 
 interface NavBarProps {
   cartCount: number;
@@ -26,11 +27,13 @@ interface Cart {
 }
 
 
-function Navbar({ cartCount }: NavBarProps) {
+function Navbar({ cartCount = 0 }: NavBarProps) {
 
    const [carts, setCarts] = useState<Cart[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const cartRef = useRef<HTMLDivElement>(null);
+ const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const userId = 1;
 
@@ -44,6 +47,12 @@ function Navbar({ cartCount }: NavBarProps) {
       .catch((err) => console.error("Error fetching carts:", err));
   }, []);
 
+    // ✅ Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("auth");
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
   return (
     <div>
       <div className="flex justify-end items-center shadow-md h-[4rem]">
@@ -88,8 +97,20 @@ function Navbar({ cartCount }: NavBarProps) {
           </div>
            
           
+          <div>
+              <FiUser className="h-[2rem] w-[2rem] bg-gray-400 text-gray-500 rounded-full p-1"   onClick={() => setIsUserMenuOpen((prev) => !prev)}/>
+            {isUserMenuOpen && (
+              <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-md p-2 z-50">
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-3 py-1 text-sm text-red-600 hover:bg-gray-100 rounded"
+                >
+                  <span className='font-semibold text-gray-500'>Logout</span><IoIosLogOut className='text-gray-500'/>
+                </button>
+              </div>
+            )}
+          </div>
           
-          <FiUser className="h-[2rem] w-[2rem] bg-gray-400 text-gray-500 rounded-full p-1" />
         </nav>
       </div>
       <SideBar />
